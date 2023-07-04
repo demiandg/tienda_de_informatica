@@ -52,12 +52,12 @@ PRIMARY KEY (id)
 
 CREATE TABLE IF NOT EXISTS informatica_dsd.direcciones (
 id INT NOT NULL AUTO_INCREMENT,
-id_cliente INT NOT NULL,
-id_empleado INT NOT NULL,
-id_proveedor INT NOT NULL,
+id_cliente INT DEFAULT 0,
+id_empleado INT DEFAULT 0,
+id_proveedor INT DEFAULT 0,
 id_provincia TINYINT NOT NULL,
 pais VARCHAR(20) DEFAULT 'ARGENTINA',
-localidad VARCHAR(20) NOT NULL,
+localidad VARCHAR(30) NOT NULL,
 direccion  VARCHAR(30) NOT NULL,
 cod_postal VARCHAR(10),
 direccion_principal TINYINT DEFAULT 1,
@@ -73,9 +73,9 @@ CONSTRAINT fk_direccion_provincia FOREIGN KEY (id_provincia) REFERENCES provinci
 
 CREATE TABLE IF NOT EXISTS informatica_dsd.emails (
 id INT NOT NULL AUTO_INCREMENT,
-id_cliente INT NOT NULL,
-id_empleado INT NOT NULL,
-id_proveedor INT NOT NULL,
+id_cliente INT DEFAULT 0,
+id_empleado INT DEFAULT 0,
+id_proveedor INT DEFAULT 0,
 email VARCHAR(100) NOT NULL UNIQUE,
 principal TINYINT DEFAULT 1,
 PRIMARY KEY (id), 
@@ -89,9 +89,9 @@ CONSTRAINT fk_email_proveedor FOREIGN KEY (id_proveedor) REFERENCES proveedores
 
 CREATE TABLE IF NOT EXISTS informatica_dsd.telefonos (
 id INT NOT NULL AUTO_INCREMENT,
-id_cliente INT NOT NULL,
-id_empleado INT NOT NULL,
-id_proveedor INT NOT NULL,
+id_cliente INT DEFAULT 0,
+id_empleado INT DEFAULT 0,
+id_proveedor INT DEFAULT 0,
 telefono VARCHAR(15) NOT NULL,
 detalle VARCHAR(20),
 principal TINYINT DEFAULT 1,
@@ -105,11 +105,11 @@ CONSTRAINT fk_telefono_proveedor FOREIGN KEY (id_proveedor) REFERENCES proveedor
 
 
 CREATE TABLE IF NOT EXISTS informatica_dsd.facturacion (
-id INT NOT NULL,
+id INT NOT NULL AUTO_INCREMENT,
 id_cliente INT NOT NULL,
 numbfactura VARCHAR(15)  NOT NULL, 
 subtotal DECIMAL(10,2) NOT NULL,
-iva DECIMAL(7,2) DEFAULT 0.00,
+iva DECIMAL(8,2) DEFAULT 0.00,
 total DECIMAL(11,2) NOT NULL,
 fecha DATE NOT NULL,
 PRIMARY KEY (id),
@@ -135,9 +135,9 @@ CREATE TABLE IF NOT EXISTS informatica_dsd.productos (
 id INT NOT NULL AUTO_INCREMENT,
 id_proveedor INT NOT NULL,
 id_categoria INT NOT NULL,
-nombre VARCHAR(40) NOT NULL,
-presentacion VARCHAR(25) NOT NULL,
-precio_unitario DECIMAL(8,2) NOT NULL,
+nombre VARCHAR(45) NOT NULL,
+presentacion VARCHAR(45) NOT NULL,
+precio_unitario DECIMAL(10,2) NOT NULL,
 PRIMARY KEY (id),
 CONSTRAINT fk_producto_proveedor FOREIGN KEY (id_proveedor) REFERENCES proveedores
 (id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -184,4 +184,8 @@ CONSTRAINT fk_servfac_servtec FOREIGN KEY (id_servicio_tecnico) REFERENCES servi
 (id) ON DELETE RESTRICT ON UPDATE CASCADE,
 CONSTRAINT fk_servfac_servicio FOREIGN KEY (id_servicio) REFERENCES servicios
 (id) ON DELETE RESTRICT ON UPDATE CASCADE
+
+
+
+
 );
