@@ -184,8 +184,115 @@ CONSTRAINT fk_servfac_servtec FOREIGN KEY (id_servicio_tecnico) REFERENCES servi
 (id) ON DELETE RESTRICT ON UPDATE CASCADE,
 CONSTRAINT fk_servfac_servicio FOREIGN KEY (id_servicio) REFERENCES servicios
 (id) ON DELETE RESTRICT ON UPDATE CASCADE
-
-
-
-
 );
+
+USE informatica_dsd;
+
+CREATE OR REPLACE VIEW serv_pend AS (
+SELECT count(*) AS "trabajos_pendientes"
+FROM servicio_tecnico
+WHERE estado IS NULL);
+
+CREATE OR REPLACE VIEW cont_empleado AS (
+SELECT concat(nombre," ", apellido) AS name,
+telefono,
+email
+FROM empleados e INNER JOIN telefonos t
+ON (e.id = t.id_empleado)
+INNER JOIN emails m
+ON (e.id = m.id_empleado));
+
+
+CREATE OR REPLACE VIEW prodxcat AS (
+SELECT
+categoria,
+COUNT(id_categoria) as productos
+FROM categoria_productos cp INNER JOIN productos np
+ON (cp.id = np.id_categoria)
+GROUP BY categoria);
+
+CREATE OR REPLACE VIEW cant_vend AS (
+SELECT 
+id_producto AS producto,
+SUM(cantidad) AS cantidades
+FROM ventas_productos
+GROUP BY id_producto
+);
+
+CREATE OR REPLACE VIEW provxprov AS (
+SELECT
+provincia,
+COUNT(id_proveedor)
+FROM
+provincias p INNER JOIN direcciones d
+ON (p.id = d.id_provincia)
+WHERE id_proveedor > 0
+GROUP BY id_provincia 
+ORDER BY id_provincia
+);
+
+CREATE VIEW service_facturar AS ( 
+SELECT *
+FROM servicio_tecnico
+WHERE estado like 'finalizado');
+
+DELIMITER $$ 
+
+USE informatica_dsd$$
+
+CREATE FUNCTION final_cuotas (monto decimal (11,2), cuotas INT, interes INT) RETURNS decimal(11,2)
+NO SQL
+BEGIN
+DECLARE imp_cuota decimal(11,2);
+SET imp_cuota=(monto*(1+interes/100))/cuotas;
+RETURN imp_cuota;
+END$$
+
+CREATE FUNCTION recaudacion (desde DATE, hasta DATE) RETURNS decimal(11,2)
+NO SQL
+BEGIN
+DECLARE recau decimal(11,2);
+SET recau = (SELECT SUM(total)
+FROM facturacion
+WHERE fecha > desde AND fecha < hasta);
+RETURN recau;
+END$$
+
+
+USE informatica_dsd;
+
+DELIMITER $$
+CREATE PROCEDURE `dsd_ordenar` (IN campo CHAR(30), IN ordenamiento CHAR(30))  
+BEGIN
+	IF campo <> '' AND ordenamiento = 'descendente' THEN
+		SET @variable = CONCAT('ORDER BY ', campo, ' DESC');
+        ELSE IF campo <> '' THEN
+        SET @variable = CONCAT('ORDER BY ', campo);
+        ELSE
+        SET @variable = '';
+        END IF;
+	END IF;
+		SET @consulta = CONCAT('SELECT * FROM informatica_dsd.clientes', ' ', @variable); 
+    
+    PREPARE dsd_ordenar FROM @consulta;
+    EXECUTE dsd_ordenar;
+    DEALLOCATE PREPARE dsd_ordenar;
+    
+END $$
+
+DELIMITER ;
+
+-- actualizo valor en la tabla servicio_tecnico en el campo estado, con el fin de informar si un trabajo esta finalizado o demorado 
+
+USE informatica_dsd;
+
+DELIMITER $$
+CREATE PROCEDURE `actualiza_estado` (IN c_ampo INT, IN ingreso CHAR(20))  
+BEGIN
+	UPDATE informatica_dsd.servicio_tecnico SET estado = ingreso WHERE id= c_ampo; 
+END $$
+
+DELIMITER ;
+
+
+
