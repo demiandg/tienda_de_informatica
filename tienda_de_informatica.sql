@@ -163,7 +163,7 @@ id_categoria INT NOT NULL,
 nombre VARCHAR(45) NOT NULL,
 presentacion VARCHAR(45) NOT NULL,
 precio_unitario DECIMAL(10,2) NOT NULL,
-stock INT,
+stock INT NOT NULL DEFAULT 0,
 PRIMARY KEY (id),
 CONSTRAINT fk_producto_proveedor FOREIGN KEY (id_proveedor) REFERENCES proveedores
 (id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -262,6 +262,26 @@ SELECT *
 FROM servicio_tecnico
 WHERE estado like 'finalizado');
 
+CREATE OR REPLACE VIEW ranking AS
+    (SELECT 
+        nombre, cantidades
+    FROM
+        productos p
+            INNER JOIN
+        informatica_dsd.cant_vend icv ON (p.id = icv.producto)
+    ORDER BY cantidades DESC
+    LIMIT 10);
+    
+    
+    CREATE OR REPLACE VIEW cupo_sector AS
+    (SELECT 
+        sector AS area, COUNT(area_emp) AS empleados
+    FROM
+        empleados emp
+            INNER JOIN
+        area_empleado ae ON (emp.area_emp = ae.id)
+    GROUP BY sector);
+
 DELIMITER $$ 
 
 USE informatica_dsd$$
@@ -313,15 +333,15 @@ DELIMITER ;
 USE informatica_dsd;
 
 DELIMITER $$
-CREATE PROCEDURE `actualiza_estado` (IN c_ampo INT, IN ingreso CHAR(20))  
+CREATE PROCEDURE `actualiza_estado` (IN numb_id INT, IN situacion CHAR(20))  
 BEGIN
-	UPDATE informatica_dsd.servicio_tecnico SET estado = ingreso WHERE id= c_ampo; 
+	UPDATE informatica_dsd.servicio_tecnico SET estado = situacion WHERE id= numb_id; 
 END $$
 
 DELIMITER ;
 
 CREATE TABLE IF NOT EXISTS mov_empleados (
-id TINYINT NOT NULL AUTO_INCREMENT,
+id INT NOT NULL AUTO_INCREMENT,
 id_empleado INT NOT NULL,
 id_area_anterior TINYINT NOT NULL,
 fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -336,7 +356,7 @@ INSERT INTO mov_empleados (id_empleado, id_area_anterior)
 VALUES (OLD.id, OLD.area_emp);
 
 CREATE OR REPLACE VIEW mov_internos AS (SELECT  
-concat(nombre," ", apellido) AS name,
+concat(nombre," ", apellido) AS nombre,
 sector AS puesto_anterior,
 fecha AS hasta
 FROM empleados e INNER JOIN  mov_empleados me
@@ -1971,7 +1991,7 @@ VALUES
 (NULL,2,1,'Notebook Gamer Thunderobot 911','Core I5 12450H 16GB 512GB SSD NVMe ',613000,30),
 (NULL,2,1,'Notebook Gamer Asus ROG','Ryzen 7 4800HS 16GB (2x8GB) 512GB',640330,20),
 (NULL,3,1,'Notebook Lenovo ThinkPad E14 FHD 14','Ryzen 5 4800HS 16GB (2x8GB) 512GB ',548000,24),
-(NULL,3,1,'Notebook Lenovo ThinkPad E14 FHD 14 ','Ryzen 7 5700U 8GB 256GB SSD NVMe Freedos',650630,32),
+(NULL,3,1,'Notebook Lenovo ThinkPad E17 FHD 14','Ryzen 7 5700U 8GB 256GB SSD NVMe Freedos',650630,32),
 (NULL,1,2,'Ryzen 3 4100','Sin cooler OEM',41990,17),
 (NULL,1,2,'Procesador AMD RYZEN 3 3200G','4.0GHz Turbo + Radeon Vega 8 AM4 ',64900,30),
 (NULL,1,2,'Procesador Intel Celeron G4900',' 3.10GHz Socket 1151 OEM Coffe Lake',15190,27),
